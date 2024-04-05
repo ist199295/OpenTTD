@@ -778,7 +778,19 @@ static Vehicle *EnumFindVehBlockingOvertake(Vehicle *v, void *data)
 {
 	const OvertakeData *od = (OvertakeData*)data;
 
-	return (v->type == VEH_ROAD && v->First() == v && v != od->u && v != od->v) ? v : nullptr;
+	/* Check if vehicle is a candidate to block the overtaking */
+	if (v->type == VEH_ROAD && v->First() == v && v != od->u && v != od->v) {
+		/* Check if vehicle is behind the vehicles involved in overtaking */
+		int dist_u_v = abs(od->u->x_pos - v->x_pos) + abs(od->u->y_pos - v->y_pos);
+		int dist_v_v = abs(od->v->x_pos - v->x_pos) + abs(od->v->y_pos - v->y_pos);
+
+		/* Vehicle can't block overtaking if it's behind */
+		if (dist_u_v > dist_v_v) return nullptr;
+
+		return v;
+	}
+
+	return nullptr;
 }
 
 /**
